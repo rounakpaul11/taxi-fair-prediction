@@ -5,22 +5,47 @@ import os
 import warnings
 import seaborn as sns
 import matplotlib.pyplot as plt
+import pickle
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 warnings.filterwarnings('ignore')
 
 st.set_page_config(page_title="Taxi Fare Prediction", page_icon=":car:", layout="wide")
 
+with open("style.css") as f:
+    st.markdown("<style>{}</style>".format(f.read()), unsafe_allow_html=True)
 st.title(":car: Taxi Fare Prediction")
+
 st.markdown('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
 
 fl = st.file_uploader(":file_folder: Upload a file", type=(["csv", "txt", "xlsx", "xls"]))
 if fl is not None:
     filename = fl.name
     st.write(filename)
-    df = pd.read_csv(fl, encoding="ISO-8859-1")  # Modified to read directly from file uploader
+    df = pd.read_csv(fl, encoding="ISO-8859-1")  
 else:
     os.chdir(r"C:\Users\ranja\Desktop\mlproject")
     df = pd.read_csv("cabdata.csv")
+
+# Load the trained model
+with open('model.pkl', 'rb') as file:
+    model = pickle.load(file)
+
+# Define a function to predict fare amount
+def predict_fare(trip_distance, month, day_of_week, passenger_count, model_name):
+    # Convert categorical data into numerical data
+    label_encoder = LabelEncoder()
+    model_name = label_encoder.fit_transform([model_name])
+    day_of_week = label_encoder.fit_transform([day_of_week])
+
+    # Create a 2D array with the features
+    features = np.array([[trip_distance, month, day_of_week, passenger_count, model_name]])
+
+    # Use the model to predict the fare amount
+    fare_amount = model.predict(features)
+
+    return fare_amount
 
 # Interactive Controls
 st.sidebar.title("Interactive Controls")
@@ -39,6 +64,19 @@ fare_amount_range = st.sidebar.slider("Select Fare Amount Range", float(df["fare
 # Slider for Trip Duration
 trip_duration_range = st.sidebar.slider("Select Trip Duration Range", float(df["trip_duration"].min()),
                                         float(df["trip_duration"].max()), (float(df["trip_duration"].min()), float(df["trip_duration"].max())))
+
+# Input fields for prediction
+st.sidebar.title("Predict Fare Amount")
+trip_distance_input = st.sidebar.number_input("Enter Trip Distance")
+month_input = st.sidebar.number_input("Enter Month")
+day_of_week_input = st.sidebar.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+passenger_count_input = st.sidebar.number_input("Enter Passenger Count")
+model_name_input = st.sidebar.selectbox("Enter Model Type",["MINI","SEDAN","AUTO","SUV"])
+
+# Predict fare amount
+if st.sidebar.button("Predict Fare"):
+    fare_amount_predicted = predict_fare(trip_distance_input, month_input, day_of_week_input, passenger_count_input, model_name_input)
+    st.write(f"### Predicted Fare Amount: {fare_amount_predicted}")
 
 # Filter data based on interactive controls
 filtered_df = df[df["model"] == model_choice]
@@ -61,13 +99,6 @@ with col1:
     category_fare_df = filtered_df.groupby("model")["fare_amount"].sum().reset_index()
     fig1 = px.bar(category_fare_df, x="model", y="fare_amount", title="Total Fare Amount by Category")
     st.plotly_chart(fig1, use_container_width=True)
-
-# # Heatmap of Fare Amount by Hour and Day of Week
-# st.subheader("Heatmap of Fare Amount by Hour and Day of Week")
-# pivot_df = filtered_df.pivot_table(values="fare_amount", index="hour_of_day", columns="day_of_week", aggfunc="mean")
-# plt.figure(figsize=(12, 8))
-# sns.heatmap(pivot_df, cmap="YlGnBu", annot=True, fmt=".2f")
-# st.pyplot(plt)
 
 # Box Plot of Fare Amount by Model
 st.subheader("Box Plot of Fare Amount by Model")
