@@ -33,19 +33,51 @@ with open('model.pkl', 'rb') as file:
     model = pickle.load(file)
 
 # Define a function to predict fare amount
-def predict_fare(trip_distance, month, day_of_week, passenger_count, model_name):
+def predict_fare(month, day_of_week, passenger_count, model_name, Time_Category, dropoff_latitude, dropoff_longitude):
     # Convert categorical data into numerical data
     label_encoder = LabelEncoder()
     model_name = label_encoder.fit_transform([model_name])
     day_of_week = label_encoder.fit_transform([day_of_week])
+    Time_Category = label_encoder.fit_transform([Time_Category])
 
     # Create a 2D array with the features
-    features = np.array([[trip_distance, month, day_of_week, passenger_count, model_name]])
+    features = np.array([[month, day_of_week, passenger_count, model_name, Time_Category, dropoff_latitude, dropoff_longitude]])
 
     # Use the model to predict the fare amount
     fare_amount = model.predict(features)
 
     return fare_amount
+
+
+# Input fields for prediction
+st.sidebar.title("Predict Fare Amount")
+month_input = st.sidebar.number_input("Enter Month")
+day_of_week_input = st.sidebar.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+passenger_count_input = st.sidebar.number_input("Enter Passenger Count")
+model_name_input = st.sidebar.selectbox("Enter Model Type",["MINI","SEDAN","AUTO","SUV"])
+Time_Category_input = st.sidebar.selectbox("Enter Time Category",["Morning", "Afternoon", "Evening", "Night", "Late_Night"])
+dropoff_latitude_input = st.sidebar.number_input("Enter Dropoff Latitude")
+dropoff_longitude_input = st.sidebar.number_input("Enter Dropoff Longitude")
+
+# Predict fare amount
+if st.sidebar.button("Predict Fare"):
+    fare_amount_predicted = predict_fare(month_input, day_of_week_input, passenger_count_input, model_name_input, Time_Category_input, dropoff_latitude_input, dropoff_longitude_input)
+    
+    # Adjust the fare amount based on the time category
+    if Time_Category_input == 'Evening':
+        fare_amount_predicted *= 1.5
+        st.markdown("### :skull: <span style='color:red'>Caution: Price is high due to peak hours in the evening.</span>", unsafe_allow_html=True)
+    elif Time_Category_input == 'Late_Night':
+        fare_amount_predicted *= 2
+        st.markdown("### :skull: <span style='color:red'>Caution: Price is high due to late night charges.</span>", unsafe_allow_html=True)
+
+    st.write(f"### Predicted Fare Amount: {fare_amount_predicted}")
+
+
+
+
+#####################################################################################################################################################
+
 
 # Interactive Controls
 st.sidebar.title("Interactive Controls")
@@ -64,19 +96,6 @@ fare_amount_range = st.sidebar.slider("Select Fare Amount Range", float(df["fare
 # Slider for Trip Duration
 trip_duration_range = st.sidebar.slider("Select Trip Duration Range", float(df["trip_duration"].min()),
                                         float(df["trip_duration"].max()), (float(df["trip_duration"].min()), float(df["trip_duration"].max())))
-
-# Input fields for prediction
-st.sidebar.title("Predict Fare Amount")
-trip_distance_input = st.sidebar.number_input("Enter Trip Distance")
-month_input = st.sidebar.number_input("Enter Month")
-day_of_week_input = st.sidebar.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-passenger_count_input = st.sidebar.number_input("Enter Passenger Count")
-model_name_input = st.sidebar.selectbox("Enter Model Type",["MINI","SEDAN","AUTO","SUV"])
-
-# Predict fare amount
-if st.sidebar.button("Predict Fare"):
-    fare_amount_predicted = predict_fare(trip_distance_input, month_input, day_of_week_input, passenger_count_input, model_name_input)
-    st.write(f"### Predicted Fare Amount: {fare_amount_predicted}")
 
 # Filter data based on interactive controls
 filtered_df = df[df["model"] == model_choice]
@@ -146,15 +165,15 @@ st.plotly_chart(fig14)
 
 # Visualization: Region-wise Fare Amount
 st.subheader("Region-wise Fare Amount")
-region_fare_df = filtered_df.groupby("Delhi_location_id")["fare_amount"].sum().reset_index()
-fig2 = px.pie(region_fare_df, values="fare_amount", names="Delhi_location_id", title="Fare Amount by Region")
+region_fare_df = filtered_df.groupby("City_location_id")["fare_amount"].sum().reset_index()
+fig2 = px.pie(region_fare_df, values="fare_amount", names="City_location_id", title="Fare Amount by Region")
 st.plotly_chart(fig2)
 
 # Visualization: Region-wise Fare Amount
 with col2:
     st.subheader("Region-wise Fare Amount")
-    region_fare_df = filtered_df.groupby("Delhi_location_id")["fare_amount"].sum().reset_index()
-    fig2 = px.pie(region_fare_df, values="fare_amount", names="Delhi_location_id", title="Fare Amount by Region")
+    region_fare_df = filtered_df.groupby("City_location_id")["fare_amount"].sum().reset_index()
+    fig2 = px.pie(region_fare_df, values="fare_amount", names="City_location_id", title="Fare Amount by Region")
     st.plotly_chart(fig2, use_container_width=True)
 
 # Interactive scatter plot with filtered data

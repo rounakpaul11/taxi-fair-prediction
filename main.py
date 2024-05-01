@@ -11,9 +11,10 @@ df = pd.read_csv('cabdata.csv')
 label_encoder = LabelEncoder()
 df['model'] = label_encoder.fit_transform(df['model'])
 df['day_of_week'] = label_encoder.fit_transform(df['day_of_week'])
+df['Time_Category'] = label_encoder.fit_transform(df['Time_Category'])
 
 # Select features and target variable
-features = ['trip_distance', 'month', 'day_of_week', 'passenger_count', 'model']
+features = ['month', 'day_of_week', 'passenger_count', 'model', 'Time_Category', 'dropoff_latitude', 'dropoff_longitude']
 target = 'fare_amount'
 
 X = df[features]
