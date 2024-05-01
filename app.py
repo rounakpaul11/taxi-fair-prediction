@@ -25,7 +25,7 @@ if fl is not None:
     st.write(filename)
     df = pd.read_csv(fl, encoding="ISO-8859-1")  
 else:
-    os.chdir(r"C:\Users\ranja\Desktop\mlproject")
+    #os.chdir(r"C:\Users\ranja\Desktop\mlproject")
     df = pd.read_csv("cabdata.csv")
 
 # Load the trained model
