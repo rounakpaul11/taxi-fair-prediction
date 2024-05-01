@@ -25,7 +25,7 @@ if fl is not None:
     st.write(filename)
     df = pd.read_csv(fl, encoding="ISO-8859-1")  
 else:
-    #os.chdir(r"C:\Users\ranja\Desktop\mlproject")
+    os.chdir(r"C:\Users\ranja\Desktop\mlproject")
     df = pd.read_csv("cabdata.csv")
 
 # Load the trained model
@@ -33,7 +33,7 @@ with open('model.pkl', 'rb') as file:
     model = pickle.load(file)
 
 # Define a function to predict fare amount
-def predict_fare(month, day_of_week, passenger_count, model_name, Time_Category, dropoff_latitude, dropoff_longitude):
+def predict_fare(month, day_of_week, passenger_count, model_name, Time_Category, pickup_latitude, pickup_longitude, dropoff_latitude, dropoff_longitude):
     # Convert categorical data into numerical data
     label_encoder = LabelEncoder()
     model_name = label_encoder.fit_transform([model_name])
@@ -41,7 +41,7 @@ def predict_fare(month, day_of_week, passenger_count, model_name, Time_Category,
     Time_Category = label_encoder.fit_transform([Time_Category])
 
     # Create a 2D array with the features
-    features = np.array([[month, day_of_week, passenger_count, model_name, Time_Category, dropoff_latitude, dropoff_longitude]])
+    features = np.array([[month, day_of_week, passenger_count, model_name, Time_Category, pickup_latitude, pickup_longitude, dropoff_latitude, dropoff_longitude]])
 
     # Use the model to predict the fare amount
     fare_amount = model.predict(features)
@@ -51,17 +51,25 @@ def predict_fare(month, day_of_week, passenger_count, model_name, Time_Category,
 
 # Input fields for prediction
 st.sidebar.title("Predict Fare Amount")
-month_input = st.sidebar.number_input("Enter Month")
+month_input = st.sidebar.selectbox("Select Month", ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"])
 day_of_week_input = st.sidebar.selectbox("Select Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-passenger_count_input = st.sidebar.number_input("Enter Passenger Count")
+passenger_count_input = st.sidebar.selectbox("Select Passenger Count", [1, 2, 3, 4, 5, 6])
 model_name_input = st.sidebar.selectbox("Enter Model Type",["MINI","SEDAN","AUTO","SUV"])
 Time_Category_input = st.sidebar.selectbox("Enter Time Category",["Morning", "Afternoon", "Evening", "Night", "Late_Night"])
+pickup_latitude_input = st.sidebar.number_input("Enter Pickup Latitude")
+pickup_longitude_input = st.sidebar.number_input("Enter Pickup Longitude")
 dropoff_latitude_input = st.sidebar.number_input("Enter Dropoff Latitude")
 dropoff_longitude_input = st.sidebar.number_input("Enter Dropoff Longitude")
 
+# Convert month name to number
+months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+month_input = months.index(month_input) + 1
+
 # Predict fare amount
 if st.sidebar.button("Predict Fare"):
-    fare_amount_predicted = predict_fare(month_input, day_of_week_input, passenger_count_input, model_name_input, Time_Category_input, dropoff_latitude_input, dropoff_longitude_input)
+    fare_amount_predicted = predict_fare(month_input, day_of_week_input, passenger_count_input, model_name_input, Time_Category_input, pickup_latitude_input, pickup_longitude_input, dropoff_latitude_input, dropoff_longitude_input)
+
+
     
     # Adjust the fare amount based on the time category
     if Time_Category_input == 'Evening':

@@ -14,7 +14,7 @@ df['day_of_week'] = label_encoder.fit_transform(df['day_of_week'])
 df['Time_Category'] = label_encoder.fit_transform(df['Time_Category'])
 
 # Select features and target variable
-features = ['month', 'day_of_week', 'passenger_count', 'model', 'Time_Category', 'dropoff_latitude', 'dropoff_longitude']
+features = ['month', 'day_of_week', 'passenger_count', 'model', 'Time_Category', 'pickup_latitude', 'pickup_longitude', 'dropoff_latitude', 'dropoff_longitude']
 target = 'fare_amount'
 
 X = df[features]
