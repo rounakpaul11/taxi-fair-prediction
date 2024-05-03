@@ -15,7 +15,7 @@ st.set_page_config(page_title="Taxi Fare Prediction", page_icon=":car:", layout=
 
 with open("style.css") as f:
     st.markdown("<style>{}</style>".format(f.read()), unsafe_allow_html=True)
-st.title(":car: Taxi Fare Prediction")
+st.title(":car: FareWise:Navigating Taxi Fares with Predictive Modeling")
 
 st.markdown('<style>div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
 
